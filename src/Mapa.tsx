@@ -74,8 +74,10 @@ function Mapa({ pedidos, pedidoSeleccionado }: MapaProps) {
         {
           origin: ubicacionCaracas,
           destination: pedido.ubicacion,
-          travelMode: window.google.maps.TravelMode.DRIVING,
+          travelMode: google.maps.TravelMode.DRIVING,
+          waypoints: pedido.ruta?.map((p) => ({ location: p, stopover: true })) || [],
         },
+
         (result, status) => {
           if (status === 'OK' && result) {
             setDirections((prev) => ({ ...prev, [pedido.id]: result }));
