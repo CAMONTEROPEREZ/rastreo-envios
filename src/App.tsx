@@ -66,11 +66,10 @@ const pedidosEjemplo: Pedido[] = [
     camion: 'Camión Épsilon',
     ubicacion: { lat: 10.24, lng: -67.6 },
     ultimaActualizacion: '2025-06-11T08:00:00',
-  },
+  }
 ];
 
 function App() {
-  const [pedidos] = useState(pedidosEjemplo);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null);
 
   const calcularTiempoRestante = (entrega: string) => {
@@ -87,9 +86,9 @@ function App() {
       <h1 className="titulo">📦 Rastreo de Envíos</h1>
       <div className="contenido">
         <div className="tarjetas">
-          {pedidos.map((pedido) => (
+          {pedidosEjemplo.map((pedido) => (
             <div
-              className={`tarjeta ${pedidoSeleccionado?.id === pedido.id ? 'seleccionada' : ''}`}
+              className="tarjeta"
               key={pedido.id}
               onClick={() => setPedidoSeleccionado(pedido)}
             >
@@ -97,7 +96,7 @@ function App() {
               <p><strong>Cliente:</strong> {pedido.cliente}</p>
               <p><strong>Estado:</strong> {pedido.estado}</p>
               <p><strong>Camión:</strong> {pedido.camion}</p>
-              <p><strong>Entrega:</strong> {new Date(pedido.entrega).toLocaleString()}</p>
+              <p><strong>Entrega programada:</strong> {new Date(pedido.entrega).toLocaleString()}</p>
               <p><strong>Última actualización:</strong> {new Date(pedido.ultimaActualizacion).toLocaleString()}</p>
               <p><strong>Tiempo restante:</strong> {calcularTiempoRestante(pedido.entrega)}</p>
               <p><strong>¿Retraso?:</strong> {pedido.retraso ? '⚠️ Sí' : '✅ No'}</p>
@@ -106,7 +105,7 @@ function App() {
         </div>
 
         <div className="mapa-container">
-          <Mapa pedidos={pedidos} pedidoSeleccionado={pedidoSeleccionado} />
+          <Mapa pedidos={pedidosEjemplo} pedidoSeleccionado={pedidoSeleccionado} />
         </div>
       </div>
     </div>
