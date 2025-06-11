@@ -2,7 +2,7 @@ import {
   GoogleMap,
   Marker,
   DirectionsRenderer,
-  LoadScript
+  useJsApiLoader
 } from '@react-google-maps/api';
 import { useEffect, useState } from 'react';
 
@@ -36,25 +36,45 @@ const ubicacionCaracas = {
   lng: -66.9036,
 };
 
+const darkMapStyle: google.maps.MapTypeStyle[] = [
+  { elementType: 'geometry', stylers: [{ color: '#212121' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#212121' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#757575' }] },
+  { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#121212' }] },
+  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#000000' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#3d3d3d' }] }
+];
+
 function Mapa({ pedidos, pedidoSeleccionado }: MapaProps) {
-  const [directions, setDirections] = useState<{
-    [pedidoId: number]: google.maps.DirectionsResult;
-  }>({});
-  const [posicionesCamiones, setPosicionesCamiones] = useState<{
-    [pedidoId: number]: google.maps.LatLngLiteral;
-  }>({});
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: ['places']
+  });
+
+  const [directions, setDirections] = useState<{ [id: number]: google.maps.DirectionsResult }>({});
+  const [posicionesCamiones, setPosicionesCamiones] = useState<{ [id: number]: google.maps.LatLngLiteral }>({});
 
   const pedidosAMostrar = pedidoSeleccionado ? [pedidoSeleccionado] : pedidos;
 
   useEffect(() => {
-    const service = new google.maps.DirectionsService();
+    if (!isLoaded) return;
+
+    const service = new window.google.maps.DirectionsService();
 
     pedidosAMostrar.forEach((pedido) => {
       service.route(
         {
           origin: ubicacionCaracas,
           destination: pedido.ubicacion,
-          travelMode: google.maps.TravelMode.DRIVING,
+          travelMode: window.google.maps.TravelMode.DRIVING,
         },
         (result, status) => {
           if (status === 'OK' && result) {
@@ -68,10 +88,12 @@ function Mapa({ pedidos, pedidoSeleccionado }: MapaProps) {
         }
       );
     });
-  }, [pedidosAMostrar]);
+  }, [isLoaded, pedidosAMostrar]);
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (!isLoaded) return;
+
       pedidosAMostrar.forEach((pedido) => {
         const dir = directions[pedido.id];
         if (!dir) return;
@@ -85,9 +107,7 @@ function Mapa({ pedidos, pedidoSeleccionado }: MapaProps) {
             Math.abs(current.lng - step.start_location.lng()) < 0.001
         );
 
-        if (!nextStep) {
-          nextStep = steps[0];
-        }
+        if (!nextStep) nextStep = steps[0];
 
         const end = nextStep.end_location;
         setPosicionesCamiones((prev) => ({
@@ -98,124 +118,53 @@ function Mapa({ pedidos, pedidoSeleccionado }: MapaProps) {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [directions, posicionesCamiones]);
+  }, [isLoaded, directions, posicionesCamiones]);
+
+  if (!isLoaded) return <p style={{ color: '#fff' }}>Cargando mapa...</p>;
 
   return (
-    <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={pedidoSeleccionado?.ubicacion || ubicacionCaracas}
-        zoom={pedidoSeleccionado ? 13 : 8}
-        options={{
-          styles: darkMapStyle,
-          disableDefaultUI: false,
-        }}
-      >
-        {pedidosAMostrar.map((pedido) => (
-          <div key={pedido.id}>
-            {directions[pedido.id] && (
-              <DirectionsRenderer
-                directions={directions[pedido.id]}
-                options={{
-                  polylineOptions: {
-                    strokeColor: '#00ffff',
-                    strokeWeight: 4,
-                  },
-                  suppressMarkers: true,
-                }}
-              />
-            )}
-
-            <Marker
-              position={pedido.ubicacion}
-              label={`#${pedido.id}`}
-              title={`Destino de ${pedido.camion}`}
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={pedidoSeleccionado?.ubicacion || ubicacionCaracas}
+      zoom={pedidoSeleccionado ? 13 : 8}
+      options={{
+        styles: darkMapStyle,
+        disableDefaultUI: false,
+      }}
+    >
+      {pedidosAMostrar.map((pedido) => (
+        <div key={pedido.id}>
+          {directions[pedido.id] && (
+            <DirectionsRenderer
+              directions={directions[pedido.id]}
+              options={{
+                polylineOptions: {
+                  strokeColor: '#00ffff',
+                  strokeWeight: 4,
+                },
+                suppressMarkers: true,
+              }}
             />
-
-            {posicionesCamiones[pedido.id] && (
-              <Marker
-                position={posicionesCamiones[pedido.id]}
-                icon={{
-                  url: 'https://img.icons8.com/fluency/48/truck.png',
-                  scaledSize: new google.maps.Size(32, 32),
-                }}
-                title={`Camión ${pedido.camion}`}
-              />
-            )}
-          </div>
-        ))}
-      </GoogleMap>
-    </LoadScript>
+          )}
+          <Marker
+            position={pedido.ubicacion}
+            label={`#${pedido.id}`}
+            title={`Destino de ${pedido.camion}`}
+          />
+          {posicionesCamiones[pedido.id] && (
+            <Marker
+              position={posicionesCamiones[pedido.id]}
+              icon={{
+                url: 'https://img.icons8.com/fluency/48/truck.png',
+                scaledSize: new google.maps.Size(32, 32),
+              }}
+              title={`Camión ${pedido.camion}`}
+            />
+          )}
+        </div>
+      ))}
+    </GoogleMap>
   );
 }
 
 export default Mapa;
-
-const darkMapStyle: google.maps.MapTypeStyle[] = [
-  {
-    elementType: 'geometry',
-    stylers: [{ color: '#212121' }],
-  },
-  {
-    elementType: 'labels.icon',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#757575' }],
-  },
-  {
-    elementType: 'labels.text.stroke',
-    stylers: [{ color: '#212121' }],
-  },
-  {
-    featureType: 'administrative',
-    elementType: 'geometry',
-    stylers: [{ color: '#757575' }],
-  },
-  {
-    featureType: 'landscape',
-    elementType: 'geometry',
-    stylers: [{ color: '#121212' }],
-  },
-  {
-    featureType: 'poi',
-    elementType: 'geometry',
-    stylers: [{ color: '#242f3e' }],
-  },
-  {
-    featureType: 'road',
-    elementType: 'geometry',
-    stylers: [{ color: '#38414e' }],
-  },
-  {
-    featureType: 'road',
-    elementType: 'geometry.stroke',
-    stylers: [{ color: '#212a37' }],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry',
-    stylers: [{ color: '#746855' }],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry.stroke',
-    stylers: [{ color: '#1f2835' }],
-  },
-  {
-    featureType: 'transit',
-    elementType: 'geometry',
-    stylers: [{ color: '#2f3948' }],
-  },
-  {
-    featureType: 'water',
-    elementType: 'geometry',
-    stylers: [{ color: '#000000' }],
-  },
-  {
-    featureType: 'water',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#3d3d3d' }],
-  },
-];
