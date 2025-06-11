@@ -24,7 +24,7 @@ const pedidosEjemplo: Pedido[] = [
     entrega: '2025-06-11T13:00:00',
     retraso: false,
     camion: 'Camión Alfa',
-    ubicacion: { lat: 10.4696, lng: -66.8035 }, // Caracas
+    ubicacion: { lat: 10.4696, lng: -66.8035 },
     ultimaActualizacion: '2025-06-11T11:30:00'
   },
   {
@@ -34,7 +34,7 @@ const pedidosEjemplo: Pedido[] = [
     entrega: '2025-06-10T16:00:00',
     retraso: false,
     camion: 'Camión Beta',
-    ubicacion: { lat: 10.2264, lng: -67.4735 }, // Maracay
+    ubicacion: { lat: 10.2264, lng: -67.4735 },
     ultimaActualizacion: '2025-06-10T15:45:00'
   },
   {
@@ -44,7 +44,7 @@ const pedidosEjemplo: Pedido[] = [
     entrega: '2025-06-11T12:00:00',
     retraso: true,
     camion: 'Camión Gamma',
-    ubicacion: { lat: 10.162, lng: -67.9999 }, // Valencia
+    ubicacion: { lat: 10.162, lng: -67.9999 },
     ultimaActualizacion: '2025-06-11T10:15:00'
   },
   {
@@ -54,7 +54,7 @@ const pedidosEjemplo: Pedido[] = [
     entrega: '2025-06-11T14:00:00',
     retraso: false,
     camion: 'Camión Delta',
-    ubicacion: { lat: 10.503, lng: -66.916 }, // Caracas (centro)
+    ubicacion: { lat: 10.503, lng: -66.916 },
     ultimaActualizacion: '2025-06-11T09:00:00'
   },
   {
@@ -70,9 +70,12 @@ const pedidosEjemplo: Pedido[] = [
 ];
 
 function App() {
-    const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null);
-    const [pedidos] = useState(pedidosEjemplo);
-    const calcularTiempoRestante = (entrega: string) => {
+  const [pedidos] = useState(pedidosEjemplo);
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null);
+  const [distancia, setDistancia] = useState('');
+  const [duracion, setDuracion] = useState('');
+
+  const calcularTiempoRestante = (entrega: string) => {
     const entregaTime = new Date(entrega);
     const ahora = new Date();
     const diffMs = entregaTime.getTime() - ahora.getTime();
@@ -88,10 +91,12 @@ function App() {
         <div className="tarjetas">
           {pedidos.map((pedido) => (
             <div
-                className="tarjeta"
-                key={pedido.id}
-                onClick={() => setPedidoSeleccionado(pedido)}
-                style={{ cursor: 'pointer' }}>
+              className="tarjeta"
+              key={pedido.id}
+              onClick={() => {
+                setPedidoSeleccionado(pedido);
+              }}
+            >
               <h2>Pedido #{pedido.id}</h2>
               <p><strong>Cliente:</strong> {pedido.cliente}</p>
               <p><strong>Estado:</strong> {pedido.estado}</p>
@@ -100,12 +105,23 @@ function App() {
               <p><strong>Última actualización:</strong> {new Date(pedido.ultimaActualizacion).toLocaleString()}</p>
               <p><strong>Tiempo restante:</strong> {calcularTiempoRestante(pedido.entrega)}</p>
               <p><strong>¿Retraso?:</strong> {pedido.retraso ? '⚠️ Sí' : '✅ No'}</p>
+              {pedidoSeleccionado?.id === pedido.id && (
+                <>
+                  <p><strong>Distancia estimada:</strong> {distancia}</p>
+                  <p><strong>Duración estimada:</strong> {duracion}</p>
+                </>
+              )}
             </div>
           ))}
         </div>
 
         <div className="mapa-container">
-          <Mapa pedidos={pedidos} pedidoSeleccionado={pedidoSeleccionado} />
+          <Mapa
+            pedidos={pedidos}
+            pedidoSeleccionado={pedidoSeleccionado}
+            setDistancia={setDistancia}
+            setDuracion={setDuracion}
+          />
         </div>
       </div>
     </div>
