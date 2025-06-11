@@ -23,18 +23,14 @@ body, html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-
 }
 
 .tarjetas {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .tarjeta {
@@ -55,6 +51,8 @@ body, html {
 .mapa-container {
   width: 90%;
   max-width: 1000px;
-  display: flex;
-  justify-content: center;
+  height: 500px;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.7);
 }
