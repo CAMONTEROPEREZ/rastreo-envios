@@ -1,27 +1,42 @@
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f4f6f8;
   margin: 0;
-  padding: 0;
+  background-color: #121212;
+  color: #f0f0f0;
+  font-family: sans-serif;
 }
 
-.container {
-  max-width: 800px;
-  margin: 3rem auto;
-  padding: 2rem;
-  text-align: center;
+.container.dark-mode {
+  padding: 1rem;
 }
 
 .titulo {
-  color: #1976d2;
-  margin-bottom: 2rem;
+  color: #90caf9;
 }
 
 .tarjeta {
-  background-color: white;
-  padding: 1.5rem;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  padding: 1rem;
   margin-bottom: 1rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  text-align: left;
+  border-radius: 10px;
+}
+
+.tarjeta-entregado {
+  border-left: 4px solid #4caf50;
+}
+
+.tarjeta-en-camino {
+  border-left: 4px solid #2196f3;
+}
+
+.tarjeta-con-demoras {
+  border-left: 4px solid #ff9800;
+}
+
+.tarjeta-esperando-recogida {
+  border-left: 4px solid #9c27b0;
+}
+
+.tarjeta-cancelado {
+  border-left: 4px solid #f44336;
 }
