@@ -87,7 +87,11 @@ function App() {
       <div className="contenido">
         <div className="tarjetas">
           {pedidos.map((pedido) => (
-            <div className="tarjeta" key={pedido.id}>
+            <div
+                className="tarjeta"
+                key={pedido.id}
+                onClick={() => setPedidoSeleccionado(pedido)}
+                style={{ cursor: 'pointer' }}>
               <h2>Pedido #{pedido.id}</h2>
               <p><strong>Cliente:</strong> {pedido.cliente}</p>
               <p><strong>Estado:</strong> {pedido.estado}</p>
