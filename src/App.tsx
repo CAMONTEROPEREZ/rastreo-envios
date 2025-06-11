@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import './App.css';
 import Mapa from './Mapa';
 
@@ -58,14 +57,14 @@ const pedidosEjemplo = [
 function App() {
   const [pedidos, setPedidos] = useState(pedidosEjemplo);
 
-  const calcularTiempoRestante = (entrega) => {
-    const entregaTime = new Date(entrega);
-    const ahora = new Date();
-    const diffMs = entregaTime - ahora;
-    const diffHrs = Math.floor(diffMs / 3600000);
-    const diffMin = Math.floor((diffMs % 3600000) / 60000);
-    return `${diffHrs}h ${diffMin}min`;
-  };
+  const calcularTiempoRestante = (entrega: string) => {
+  const entregaTime = new Date(entrega).getTime();
+  const ahora = new Date().getTime();
+  const diffMs = entregaTime - ahora;
+  const diffHrs = Math.floor(diffMs / 3600000);
+  const diffMin = Math.floor((diffMs % 3600000) / 60000);
+  return `${diffHrs}h ${diffMin}min`;
+};
 
   return (
     <div className="app-container dark-mode">
