@@ -14,7 +14,12 @@ interface Pedido {
     lng: number;
   };
   ultimaActualizacion: string;
+  ruta?: {
+    lat: number;
+    lng: number;
+  }[]; // <- NUEVO: ruta como propiedad opcional
 }
+
 
 const pedidosEjemplo: Pedido[] = [
  // nuevo campo `ruta` con paradas intermedias
