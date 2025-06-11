@@ -47,7 +47,7 @@ function App() {
       )}
 
       {/* Aquí va el componente de mapa */}
-      <Mapa />
+      <Mapa pedidos={pedidos} />
     </div>
   );
 }
