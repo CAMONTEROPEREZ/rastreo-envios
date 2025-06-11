@@ -27,12 +27,12 @@ const pedidosEjemplo: Pedido[] = [
   camion: 'Camión Alfa',
   ubicacion: { lat: 10.162, lng: -67.9999 }, // destino final: Valencia
   ultimaActualizacion: '2025-06-11T11:30:00',
-  ruta: [
-    { lat: 10.488, lng: -66.796 }, // Petare
-    { lat: 10.471, lng: -66.636 }, // Guarenas
-    { lat: 10.246, lng: -67.5 },   // Maracay
-  ]
-}
+ ruta: [
+  { lat: 10.488, lng: -66.796 },
+  { lat: 10.471, lng: -66.636 },
+  { lat: 10.246, lng: -67.5 }
+  ] // 👈 CIERRE DE ARRAY
+  }, // 👈 ESTA COMA ERA FUNDAMENTAL
 
   {
     id: 2,
