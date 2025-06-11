@@ -17,16 +17,23 @@ interface Pedido {
 }
 
 const pedidosEjemplo: Pedido[] = [
-  {
-    id: 1,
-    cliente: 'Carlos Pérez',
-    estado: 'En camino',
-    entrega: '2025-06-11T13:00:00',
-    retraso: false,
-    camion: 'Camión Alfa',
-    ubicacion: { lat: 10.4696, lng: -66.8035 },
-    ultimaActualizacion: '2025-06-11T11:30:00',
-  },
+ // nuevo campo `ruta` con paradas intermedias
+{
+  id: 1,
+  cliente: 'Carlos Pérez',
+  estado: 'En camino',
+  entrega: '2025-06-11T13:00:00',
+  retraso: false,
+  camion: 'Camión Alfa',
+  ubicacion: { lat: 10.162, lng: -67.9999 }, // destino final: Valencia
+  ultimaActualizacion: '2025-06-11T11:30:00',
+  ruta: [
+    { lat: 10.488, lng: -66.796 }, // Petare
+    { lat: 10.471, lng: -66.636 }, // Guarenas
+    { lat: 10.246, lng: -67.5 },   // Maracay
+  ]
+}
+
   {
     id: 2,
     cliente: 'Lucía Ramírez',
