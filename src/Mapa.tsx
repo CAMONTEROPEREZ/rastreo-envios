@@ -11,6 +11,8 @@ const center = {
 };
 
 function Mapa() {
+   // 🔍 Log para depurar la clave
+  console.log("API Key:", import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
   return (
     <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
       <GoogleMap
