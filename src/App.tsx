@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css';
+import Mapa from './components/Mapa'; // Asegúrate de tener esta importación
 
 interface Pedido {
   id: number;
@@ -44,9 +45,11 @@ function App() {
           </div>
         ))
       )}
+
+      {/* Aquí va el componente de mapa */}
+      <Mapa />
     </div>
   );
 }
 
 export default App;
-
