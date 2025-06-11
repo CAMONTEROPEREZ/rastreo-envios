@@ -95,7 +95,7 @@ function App() {
 
   return (
     <div className="app-container dark-mode">
-      <h1 className="titulo">📦 Rastreo de Envíos</h1>
+      <h1 className="titulo">📦 Rastreo de Envíos SAREGO</h1>
       <div className="contenido">
         <div className="tarjetas">
           {pedidosEjemplo.map((pedido) => (
