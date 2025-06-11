@@ -70,37 +70,42 @@ const pedidosEjemplo: Pedido[] = [
 ];
 
 function App() {
-  const [pedidos] = useState<Pedido[]>(pedidosEjemplo);
+  const [pedidos, setPedidos] = useState(pedidosEjemplo);
 
-  const calcularTiempoRestante = (entrega: string): string => {
-    const entregaTime = new Date(entrega).getTime();
-    const ahora = new Date().getTime();
-    const diffMs = entregaTime - ahora;
+  const calcularTiempoRestante = (entrega: string) => {
+    const entregaTime = new Date(entrega);
+    const ahora = new Date();
+    const diffMs = entregaTime.getTime() - ahora.getTime();
     const diffHrs = Math.floor(diffMs / 3600000);
     const diffMin = Math.floor((diffMs % 3600000) / 60000);
     return `${diffHrs}h ${diffMin}min`;
   };
+
   return (
-  <div className="app-container dark-mode">
-    <h1 className="titulo">📦 Rastreo de Envíos</h1>
+    <div className="app-container dark-mode">
+      <h1 className="titulo">📦 Rastreo de Envíos</h1>
+      <div className="contenido">
+        <div className="tarjetas">
+          {pedidos.map((pedido) => (
+            <div className="tarjeta" key={pedido.id}>
+              <h2>Pedido #{pedido.id}</h2>
+              <p><strong>Cliente:</strong> {pedido.cliente}</p>
+              <p><strong>Estado:</strong> {pedido.estado}</p>
+              <p><strong>Camión:</strong> {pedido.camion}</p>
+              <p><strong>Entrega programada:</strong> {new Date(pedido.entrega).toLocaleString()}</p>
+              <p><strong>Última actualización:</strong> {new Date(pedido.ultimaActualizacion).toLocaleString()}</p>
+              <p><strong>Tiempo restante:</strong> {calcularTiempoRestante(pedido.entrega)}</p>
+              <p><strong>¿Retraso?:</strong> {pedido.retraso ? '⚠️ Sí' : '✅ No'}</p>
+            </div>
+          ))}
+        </div>
 
-    <div className="contenido">
-      <div className="tarjetas">
-        {pedidos.map((pedido: Pedido) => (
-          <div className="tarjeta" key={pedido.id}>
-            {/* ...contenido del pedido... */}
-          </div>
-        ))}
-      </div>
-
-      <div className="mapa-container">
-        <Mapa pedidos={pedidos} />
+        <div className="mapa-container">
+          <Mapa pedidos={pedidos} />
+        </div>
       </div>
     </div>
-  </div>
-);
-
-
-
+  );
+}
 
 export default App;
