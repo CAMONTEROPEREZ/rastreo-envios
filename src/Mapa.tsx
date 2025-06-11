@@ -1,4 +1,9 @@
-import { GoogleMap, LoadScript, Marker, DirectionsRenderer } from '@react-google-maps/api';
+import {
+  GoogleMap,
+  LoadScript,
+  Marker,
+  DirectionsRenderer,
+} from '@react-google-maps/api';
 import { useEffect, useState } from 'react';
 
 interface Pedido {
@@ -18,8 +23,6 @@ interface Pedido {
 interface MapaProps {
   pedidos: Pedido[];
   pedidoSeleccionado: Pedido | null;
-  setDistancia: (val: string) => void;
-  setDuracion: (val: string) => void;
 }
 
 const containerStyle = {
@@ -28,83 +31,129 @@ const containerStyle = {
   borderRadius: '20px',
 };
 
-const ubicacionCentral = {
-  lat: 10.25,
-  lng: -67.2,
+const ubicacionCaracas = {
+  lat: 10.4806,
+  lng: -66.9036,
 };
 
-function Mapa({ pedidos, pedidoSeleccionado, setDistancia, setDuracion }: MapaProps) {
-  const center = pedidoSeleccionado?.ubicacion || ubicacionCentral;
-  const zoom = pedidoSeleccionado ? 13 : 8;
+function Mapa({ pedidos, pedidoSeleccionado }: MapaProps) {
+  const [directions, setDirections] = useState<{
+    [pedidoId: number]: google.maps.DirectionsResult;
+  }>({});
+  const [posicionesCamiones, setPosicionesCamiones] = useState<{
+    [pedidoId: number]: google.maps.LatLngLiteral;
+  }>({});
 
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const pedidosAMostrar = pedidoSeleccionado
+    ? [pedidoSeleccionado]
+    : pedidos;
 
+  // Calcular rutas desde Caracas para cada pedido
   useEffect(() => {
-    if (pedidoSeleccionado && pedidoSeleccionado.estado === 'En camino') {
-      const directionsService = new google.maps.DirectionsService();
+    const service = new google.maps.DirectionsService();
 
-      directionsService.route(
+    pedidosAMostrar.forEach((pedido) => {
+      service.route(
         {
-          origin: { lat: 10.5, lng: -66.9 }, // Punto ficticio de salida
-          destination: pedidoSeleccionado.ubicacion,
+          origin: ubicacionCaracas,
+          destination: pedido.ubicacion,
           travelMode: google.maps.TravelMode.DRIVING,
         },
         (result, status) => {
           if (status === 'OK' && result) {
-            setDirections(result);
-
-            // Extraer distancia y duración
-            const leg = result.routes[0].legs[0];
-            setDistancia(leg.distance?.text || '');
-            setDuracion(leg.duration?.text || '');
-          } else {
-            console.error('Error al obtener la ruta:', status);
-            setDirections(null);
-            setDistancia('');
-            setDuracion('');
+            setDirections((prev) => ({
+              ...prev,
+              [pedido.id]: result,
+            }));
+            // Inicializa posición del camión en el inicio de la ruta
+            const start = result.routes[0].legs[0].start_location;
+            setPosicionesCamiones((prev) => ({
+              ...prev,
+              [pedido.id]: {
+                lat: start.lat(),
+                lng: start.lng(),
+              },
+            }));
           }
         }
       );
-    } else {
-      setDirections(null);
-      setDistancia('');
-      setDuracion('');
-    }
-  }, [pedidoSeleccionado]);
+    });
+  }, [pedidosAMostrar]);
+
+  // Simular movimiento de los camiones
+  useEffect(() => {
+    const interval = setInterval(() => {
+      pedidosAMostrar.forEach((pedido) => {
+        const dir = directions[pedido.id];
+        if (!dir) return;
+
+        const steps = dir.routes[0].legs[0].steps;
+        const current = posicionesCamiones[pedido.id];
+        let nextStep = steps.find((step) =>
+          Math.abs(current.lat - step.start_location.lat()) < 0.001 &&
+          Math.abs(current.lng - step.start_location.lng()) < 0.001
+        );
+
+        if (!nextStep) {
+          nextStep = steps[0];
+        }
+
+        const end = nextStep.end_location;
+        setPosicionesCamiones((prev) => ({
+          ...prev,
+          [pedido.id]: {
+            lat: end.lat(),
+            lng: end.lng(),
+          },
+        }));
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [directions, posicionesCamiones]);
 
   return (
     <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={center}
-        zoom={zoom}
+        center={pedidoSeleccionado?.ubicacion || ubicacionCaracas}
+        zoom={pedidoSeleccionado ? 13 : 8}
         options={{
           styles: darkMapStyle,
           disableDefaultUI: false,
         }}
       >
-        {(!pedidoSeleccionado ? pedidos : [pedidoSeleccionado]).map((pedido) => (
-          <Marker
-            key={pedido.id}
-            position={pedido.ubicacion}
-            label={`#${pedido.id}`}
-            title={`Camión: ${pedido.camion}`}
-          />
+        {pedidosAMostrar.map((pedido) => (
+          <div key={pedido.id}>
+            {directions[pedido.id] && (
+              <DirectionsRenderer
+                directions={directions[pedido.id]}
+                options={{
+                  polylineOptions: {
+                    strokeColor: '#00ffff',
+                    strokeWeight: 4,
+                  },
+                  suppressMarkers: true,
+                }}
+              />
+            )}
+            <Marker
+              position={pedido.ubicacion}
+              label={`#${pedido.id}`}
+              title={`Destino de ${pedido.camion}`}
+            />
+            {posicionesCamiones[pedido.id] && (
+              <Marker
+                position={posicionesCamiones[pedido.id]}
+                icon={{
+                  url: 'https://img.icons8.com/fluency/48/truck.png',
+                  scaledSize: new google.maps.Size(32, 32),
+                }}
+                title={`Camión ${pedido.camion}`}
+              />
+            )}
+          </div>
         ))}
-
-        {directions && (
-          <DirectionsRenderer
-            directions={directions}
-            options={{
-              suppressMarkers: false,
-              polylineOptions: {
-                strokeColor: '#00FFFF',
-                strokeOpacity: 0.7,
-                strokeWeight: 5,
-              },
-            }}
-          />
-        )}
       </GoogleMap>
     </LoadScript>
   );
@@ -112,20 +161,72 @@ function Mapa({ pedidos, pedidoSeleccionado, setDistancia, setDuracion }: MapaPr
 
 export default Mapa;
 
-// Estilo oscuro del mapa
+// Estilo oscuro para el mapa
 const darkMapStyle = [
-  { elementType: 'geometry', stylers: [{ color: '#212121' }] },
-  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#212121' }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#757575' }] },
-  { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#121212' }] },
-  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#000000' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#3d3d3d' }] },
+  {
+    elementType: 'geometry',
+    stylers: [{ color: '#212121' }],
+  },
+  {
+    elementType: 'labels.icon',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#757575' }],
+  },
+  {
+    elementType: 'labels.text.stroke',
+    stylers: [{ color: '#212121' }],
+  },
+  {
+    featureType: 'administrative',
+    elementType: 'geometry',
+    stylers: [{ color: '#757575' }],
+  },
+  {
+    featureType: 'landscape',
+    elementType: 'geometry',
+    stylers: [{ color: '#121212' }],
+  },
+  {
+    featureType: 'poi',
+    elementType: 'geometry',
+    stylers: [{ color: '#242f3e' }],
+  },
+  {
+    featureType: 'road',
+    elementType: 'geometry',
+    stylers: [{ color: '#38414e' }],
+  },
+  {
+    featureType: 'road',
+    elementType: 'geometry.stroke',
+    stylers: [{ color: '#212a37' }],
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry',
+    stylers: [{ color: '#746855' }],
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry.stroke',
+    stylers: [{ color: '#1f2835' }],
+  },
+  {
+    featureType: 'transit',
+    elementType: 'geometry',
+    stylers: [{ color: '#2f3948' }],
+  },
+  {
+    featureType: 'water',
+    elementType: 'geometry',
+    stylers: [{ color: '#000000' }],
+  },
+  {
+    featureType: 'water',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#3d3d3d' }],
+  },
 ];
