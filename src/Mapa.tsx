@@ -1,6 +1,20 @@
 // Mapa.tsx
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 
+interface Pedido {
+  id: number;
+  cliente: string;
+  estado: string;
+  entrega: string;
+  retraso: boolean;
+  camion: string;
+  ubicacion: {
+    lat: number;
+    lng: number;
+  };
+  ultimaActualizacion: string;
+}
+
 const containerStyle = {
   width: '100%',
   height: '500px'
@@ -11,7 +25,7 @@ const center = {
   lng: -66.8035
 };
 
-function Mapa({ pedidos }) {
+function Mapa({ pedidos }: { pedidos: Pedido[] }) {
   return (
     <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
       <GoogleMap
