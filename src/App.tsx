@@ -1,7 +1,22 @@
+import { useState } from 'react';
 import './App.css';
 import Mapa from './Mapa';
 
-const pedidosEjemplo = [
+interface Pedido {
+  id: number;
+  cliente: string;
+  estado: string;
+  entrega: string;
+  retraso: boolean;
+  camion: string;
+  ubicacion: {
+    lat: number;
+    lng: number;
+  };
+  ultimaActualizacion: string;
+}
+
+const pedidosEjemplo: Pedido[] = [
   {
     id: 1,
     cliente: 'Carlos Pérez',
@@ -49,29 +64,29 @@ const pedidosEjemplo = [
     entrega: '2025-06-12T11:00:00',
     retraso: false,
     camion: 'Camión Épsilon',
-    ubicacion: { lat: 10.24, lng: -67.6 }, // entre Maracay y Valencia
+    ubicacion: { lat: 10.24, lng: -67.6 },
     ultimaActualizacion: '2025-06-11T08:00:00'
   }
 ];
 
 function App() {
-  const [pedidos, setPedidos] = useState(pedidosEjemplo);
+  const [pedidos] = useState<Pedido[]>(pedidosEjemplo);
 
-  const calcularTiempoRestante = (entrega: string) => {
-  const entregaTime = new Date(entrega).getTime();
-  const ahora = new Date().getTime();
-  const diffMs = entregaTime - ahora;
-  const diffHrs = Math.floor(diffMs / 3600000);
-  const diffMin = Math.floor((diffMs % 3600000) / 60000);
-  return `${diffHrs}h ${diffMin}min`;
-};
+  const calcularTiempoRestante = (entrega: string): string => {
+    const entregaTime = new Date(entrega).getTime();
+    const ahora = new Date().getTime();
+    const diffMs = entregaTime - ahora;
+    const diffHrs = Math.floor(diffMs / 3600000);
+    const diffMin = Math.floor((diffMs % 3600000) / 60000);
+    return `${diffHrs}h ${diffMin}min`;
+  };
 
   return (
     <div className="app-container dark-mode">
       <h1 className="titulo">📦 Rastreo de Envíos</h1>
 
       <div className="tarjetas">
-        {pedidos.map((pedido) => (
+        {pedidos.map((pedido: Pedido) => (
           <div className="tarjeta" key={pedido.id}>
             <h2>Pedido #{pedido.id}</h2>
             <p><strong>Cliente:</strong> {pedido.cliente}</p>
@@ -80,9 +95,7 @@ function App() {
             <p><strong>Entrega programada:</strong> {new Date(pedido.entrega).toLocaleString()}</p>
             <p><strong>Última actualización:</strong> {new Date(pedido.ultimaActualizacion).toLocaleString()}</p>
             <p><strong>Tiempo restante:</strong> {calcularTiempoRestante(pedido.entrega)}</p>
-            <p>
-              <strong>¿Retraso?:</strong> {pedido.retraso ? '⚠️ Sí' : '✅ No'}
-            </p>
+            <p><strong>¿Retraso?:</strong> {pedido.retraso ? '⚠️ Sí' : '✅ No'}</p>
           </div>
         ))}
       </div>
