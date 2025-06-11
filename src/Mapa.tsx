@@ -18,6 +18,8 @@ interface Pedido {
 interface MapaProps {
   pedidos: Pedido[];
   pedidoSeleccionado: Pedido | null;
+  setDistancia: (val: string) => void;
+  setDuracion: (val: string) => void;
 }
 
 const containerStyle = {
@@ -31,31 +33,42 @@ const ubicacionCentral = {
   lng: -67.2,
 };
 
-const Mapa = ({ pedidos, pedidoSeleccionado }: MapaProps) => {
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+function Mapa({ pedidos, pedidoSeleccionado, setDistancia, setDuracion }: MapaProps) {
   const center = pedidoSeleccionado?.ubicacion || ubicacionCentral;
   const zoom = pedidoSeleccionado ? 13 : 8;
 
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+
   useEffect(() => {
-    if (pedidoSeleccionado?.estado === 'En camino') {
+    if (pedidoSeleccionado && pedidoSeleccionado.estado === 'En camino') {
       const directionsService = new google.maps.DirectionsService();
+
       directionsService.route(
         {
-          origin: { lat: 10.4696, lng: -66.8035 }, // Punto fijo de salida: Caracas
+          origin: { lat: 10.5, lng: -66.9 }, // Punto ficticio de salida
           destination: pedidoSeleccionado.ubicacion,
           travelMode: google.maps.TravelMode.DRIVING,
         },
         (result, status) => {
-          if (status === google.maps.DirectionsStatus.OK && result) {
+          if (status === 'OK' && result) {
             setDirections(result);
+
+            // Extraer distancia y duración
+            const leg = result.routes[0].legs[0];
+            setDistancia(leg.distance?.text || '');
+            setDuracion(leg.duration?.text || '');
           } else {
-            console.error('Error al calcular la ruta:', status);
+            console.error('Error al obtener la ruta:', status);
             setDirections(null);
+            setDistancia('');
+            setDuracion('');
           }
         }
       );
     } else {
       setDirections(null);
+      setDistancia('');
+      setDuracion('');
     }
   }, [pedidoSeleccionado]);
 
@@ -79,14 +92,27 @@ const Mapa = ({ pedidos, pedidoSeleccionado }: MapaProps) => {
           />
         ))}
 
-        {directions && <DirectionsRenderer directions={directions} />}
+        {directions && (
+          <DirectionsRenderer
+            directions={directions}
+            options={{
+              suppressMarkers: false,
+              polylineOptions: {
+                strokeColor: '#00FFFF',
+                strokeOpacity: 0.7,
+                strokeWeight: 5,
+              },
+            }}
+          />
+        )}
       </GoogleMap>
     </LoadScript>
   );
-};
+}
 
 export default Mapa;
 
+// Estilo oscuro del mapa
 const darkMapStyle = [
   { elementType: 'geometry', stylers: [{ color: '#212121' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
