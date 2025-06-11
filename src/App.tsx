@@ -70,7 +70,8 @@ const pedidosEjemplo: Pedido[] = [
 ];
 
 function App() {
-  const [pedidos] = useState(pedidosEjemplo);
+    const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null);
+    const [pedidos] = useState(pedidosEjemplo);
     const calcularTiempoRestante = (entrega: string) => {
     const entregaTime = new Date(entrega);
     const ahora = new Date();
