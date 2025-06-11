@@ -18,7 +18,12 @@ interface Pedido {
     lng: number;
   };
   ultimaActualizacion: string;
+  ruta?: {
+    lat: number;
+    lng: number;
+  }[]; // <- NUEVO: ruta como propiedad opcional
 }
+
 
 interface MapaProps {
   pedidos: Pedido[];
