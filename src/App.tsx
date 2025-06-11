@@ -105,7 +105,7 @@ function App() {
         </div>
 
         <div className="mapa-container">
-          <Mapa pedidos={pedidos} />
+          <Mapa pedidos={pedidos} pedidoSeleccionado={pedidoSeleccionado} />
         </div>
       </div>
     </div>
